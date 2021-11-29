@@ -1,0 +1,32 @@
+<!--                                                              
+////////////////////////////////////////////////////////
+////                     Head HTML                  ////
+////////////////////////////////////////////////////////
+-->
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" charset="utf-8">
+    <title>Unity Dialogue File Generator</title>
+    <meta name="author" content="Eric Kalpin">
+    <link rel='icon' type='image/png' href='src/icon.png'>
+    <link rel="stylesheet" href="src/main.css">
+    <!--
+    ////////////////////////////////////////////////////////
+    ////                     Scripts                    ////
+    ////////////////////////////////////////////////////////
+    -->
+    <script defer src="src/js/commonUtils.js"></script>
+    <script defer src="src/js/spectrogram.js"></script>
+    <script defer src="src/js/testAudioBuffer.js"></script>
+</head>
+<body>
+    <!--
+    ////////////////////////////////////////////////////////
+    ////                     Canvas                     ////
+    ////////////////////////////////////////////////////////
+    -->
+    <button onclick="TestBuffer(0.25, 1);">Test 1 Vol</button>
+    <button onclick="TestBuffer(0.25, 0.2);">Test 0.2 Vol</button>
+    <button onclick="TestBuffer(0.25, 0.05);">Test 0.05 Vol</button>
+    <canvas id="spectrogram"></canvas>
+</body>
