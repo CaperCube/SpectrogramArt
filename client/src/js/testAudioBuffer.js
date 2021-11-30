@@ -1,10 +1,93 @@
 // From: https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createBuffer
+// Freq analyser question: https://stackoverflow.com/questions/43867902/web-audio-analyze-entire-buffer
+
+// Drawing a spectrogram: https://www.youtube.com/watch?v=hYNJGPnmwls
+// Codepen from the video: https://codepen.io/jakealbaugh/pen/jvQweW/
+
+// Init canvas
+const canvas = $("#spectrogram");
+const ctx = canvas.getContext("2d");
+canvas.width = 500;
+canvas.height = 400;
+canvas.style.width = `500px`;
+canvas.style.height = `400px`;
+
+// Init audio context
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+audioCtx.fftSize = 256; //512, 256, 2048, 4096; data resolution
+//const analyser = audioCtx.createAnalyser(); // This will be used to analyse the frequencies
+//const scp = audioCtx.createScriptProcessor(256, 0, 1);
+
+//Heatmap gradient
+var heatmapGradient = [
+    [
+        0,
+        [0,0,0]
+    ],
+    [
+        25,
+        [0,0,255]
+    ],
+    [
+        50,
+        [255,0,0]
+    ],
+    [
+        75,
+        [255,255,0]
+    ],
+    [
+        100,
+        [255,255,255]
+    ]
+];
+
+// Picks a hex color somewhere between two values
+function pickHex(color1, color2, weight) {
+    var p = weight;
+    var w = p * 2 - 1;
+    var w1 = (w/1+1) / 2;
+    var w2 = 1 - w1;
+    var rgb = [Math.round(color1[0] * w1 + color2[0] * w2),
+        Math.round(color1[1] * w1 + color2[1] * w2),
+        Math.round(color1[2] * w1 + color2[2] * w2)];
+    return rgb;
+}
+
+function sampleGradient(grad, sample) {
+    let colorRange = []
+    for (let i = 0; i < grad.length - 1; i++) {
+        if (sample >= grad[i][0] && sample < grad[i+1][0]) {
+            colorRange = [i, i+1];
+            break;
+        }
+        else {
+            colorRange = [0, grad.length-1];
+        }
+    }
+        
+    //Get the two closest colors
+    let firstcolor = grad[colorRange[0]][1];
+    let secondcolor = grad[colorRange[1]][1];
+    
+    //Calculate ratio between the two closest colors
+    let firstcolor_x = (grad[colorRange[0]][0]);
+    let secondcolor_x = (grad[colorRange[1]][0]) - firstcolor_x;
+    let slider_x = sample - firstcolor_x;
+    let ratio = slider_x/secondcolor_x;
+    
+    //Get the color with pickHex(thx, less.js's mix function!)
+    return pickHex( secondcolor, firstcolor, ratio );
+}
+
+function normalize(val, max, min) { return (val - min) / (max - min); }
+const clampNumber = (num, a, b) => Math.max(Math.min(num, Math.max(a, b)), Math.min(a, b));
 
 function TestBuffer(seconds, volume) {
-    var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
     // Create an empty three-second stereo buffer at the sample rate of the AudioContext
-    var myArrayBuffer = audioCtx.createBuffer(2, audioCtx.sampleRate * seconds, audioCtx.sampleRate);
+    var myArrayBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * seconds, audioCtx.sampleRate);
 
     // Fill the buffer with white noise;
     // just random values between -1.0 and 1.0
@@ -15,9 +98,19 @@ function TestBuffer(seconds, volume) {
             // Math.random() is in [0; 1.0]
             // audio needs to be in [-1.0; 1.0]
             //nowBuffering[i] = Math.random() * 2 - 1;
-            nowBuffering[i] = (Math.sin(i/8) * 2 - 1) * (Math.sin(i/1500) * volume);
+            //const freq = Math.random() * 2 - 1;
+            //const freq = clampNumber(Math.sin(i/(80 - (i/500))), -1, 1);
+            const f = 50 - (Math.tan(i/2000) * 0.5);
+            const freq = Math.sin(i/(f));
+            //const freq = clampNumber(Math.sin(i/(20)), -1, 1);
+            const val = (freq) * volume;
+            nowBuffering[i] = val;   
         }
     }
+
+    //DrawColorWaveFromBuffer(nowBuffering, volume);
+    DrawSpectrogramFromBuffer(myArrayBuffer, volume);
+
     // Get an AudioBufferSourceNode.
     // This is the AudioNode to use when we want to play an AudioBuffer
     var source = audioCtx.createBufferSource();
@@ -28,4 +121,106 @@ function TestBuffer(seconds, volume) {
     source.connect(audioCtx.destination);
     // start the source playing
     source.start();
+}
+
+function DrawColorWaveFromBuffer(buffer, vol) {
+    // Init canvas size
+    canvas.width = buffer.length;//audioCtx.sampleRate * seconds;
+
+    for (var i = 0; i < buffer.length; i++) {
+        // Draw audio values
+        //const normalVal = (normalize(val, 1, -1)) * 100 * volume;
+        //const heatColor = sampleGradient(heatmapGradient, normalVal);
+        const normalVal = (normalize(buffer[i], 1, -1)) * 100 * vol;
+        const heatColor = sampleGradient(heatmapGradient, normalVal);
+        ctx.fillStyle = `rgb(${heatColor[0]}, ${heatColor[1]}, ${heatColor[2]})`;
+        ctx.fillRect(i, 0, 1, canvas.height);
+    }
+}
+
+function DrawSpectrogramFromBuffer(buff, vol) {
+    // Init stream & analyser
+    //const source = audioCtx.createMediaStreamSource(buffer);
+    //const source = audioCtx.createBufferSource(buffer);
+    //source.buffer = buffer;
+
+    //analyser.connect(source);
+
+    // Reset canvas width
+    //chunk.length
+    canvas.height = 1024;
+    canvas.width = buff.length / (256);
+    // canvas.style.height = `${canvas.height}px`;
+    canvas.style.height = `${400}px`;
+    canvas.style.width = `${canvas.width}px`;
+
+    ctx.fillStyle = 'hsl(280, 100%, 10%)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    canvasChunkNum = 0;
+
+    // Create a new offline audio context (use this for non-realtime things)
+    const offline = new OfflineAudioContext(1, buff.length, audioCtx.sampleRate);
+    let bufferSource = offline.createBufferSource();
+    bufferSource.buffer = buff;
+
+    // Create a new analyser based on the offline context
+    const analyser = offline.createAnalyser();
+    //const scp = offline.createScriptProcessor(256, 0, 1);
+    const scp = offline.createScriptProcessor(256, 0, 1);
+
+    // Connect the bufferSource to the analyser
+    bufferSource.connect(analyser);
+    scp.connect(offline.destination);
+
+    // get frequency data
+    const freqData = new Uint8Array(analyser.frequencyBinCount);
+    scp.onaudioprocess = function() {
+        analyser.getByteFrequencyData(freqData);
+        console.log(freqData);
+        
+        // Draw data here
+        drawFreqDataChunk(freqData);
+    }
+
+    bufferSource.start(0);
+    offline.oncomplete = function(e){
+        console.log("analysed");
+    }
+
+    offline.startRendering();
+}
+
+let canvasChunkNum = 0;
+
+function drawFreqDataChunk(chunk) {
+    // Init canvas size
+    //canvas.width += chunk.length;//audioCtx.sampleRate * seconds;
+    //ctx.fillStyle = 'hsl(280, 100%, 10%)';
+    //ctx.fillRect(x, 0, canvas.width, canvas.height);
+    const lineSize = 1;
+    canvasChunkNum += lineSize;
+    //canvas.width = canvasChunkNum;
+
+    for (var i = 0; i < chunk.length; i++) {
+        // Set data
+        const ratio = clampNumber((chunk[i] / 255), 0, 1);
+        const hue = Math.round((ratio * 120) + 280 % 360);
+        const sat = `100%`;
+        const lit = `${10 + (70 * ratio)}%`;
+        const h = (canvas.height / chunk.length);
+        const x = canvasChunkNum; //canvas.width - 1;
+
+        //ctx.fillStyle = 'hsl(280, 100%, 10%)';
+        //ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Set line style
+        ctx.lineWidth = lineSize;
+        ctx.strokeStyle = `hsl(${hue}, ${sat}, ${lit})`;
+        // Draw values
+        ctx.beginPath();
+        ctx.moveTo(x, canvas.height - (i * h));
+        ctx.lineTo(x, canvas.height - ((i * h) + h));
+        ctx.stroke();
+        ctx.closePath();
+    }
 }
