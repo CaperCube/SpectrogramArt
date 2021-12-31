@@ -101,6 +101,9 @@ function TestBuffer(seconds, volume) {
             //const freq = Math.random() * 2 - 1;
             //const freq = clampNumber(Math.sin(i/(80 - (i/500))), -1, 1);
             const f = 50 - (Math.tan(i/2000) * 0.5);
+
+            //const f = 20 - (Math.sin(i/1000) * 0.5);
+            //const freq = clampNumber( Math.sin(i/(40-(i/1000))), -1, 1);//(f));
             const freq = Math.sin(i/(f));
             //const freq = clampNumber(Math.sin(i/(20)), -1, 1);
             const val = (freq) * volume;
@@ -215,12 +218,14 @@ function drawFreqDataChunk(chunk) {
 
         // Set line style
         ctx.lineWidth = lineSize;
-        ctx.strokeStyle = `hsl(${hue}, ${sat}, ${lit})`;
+        //ctx.strokeStyle = `hsl(${hue}, ${sat}, ${lit})`;
         // Draw values
-        ctx.beginPath();
-        ctx.moveTo(x, canvas.height - (i * h));
-        ctx.lineTo(x, canvas.height - ((i * h) + h));
-        ctx.stroke();
-        ctx.closePath();
+        //ctx.beginPath();
+        //ctx.moveTo(x, canvas.height - (i * h));
+        //ctx.lineTo(x, canvas.height - ((i * h) + h));
+        //ctx.stroke();
+        //ctx.closePath();
+        ctx.fillStyle = `hsl(${hue}, ${sat}, ${lit})`;
+        ctx.fillRect(x, canvas.height - (i * h), h, h);
     }
 }
