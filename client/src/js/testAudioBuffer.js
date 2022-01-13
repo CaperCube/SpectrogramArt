@@ -5,12 +5,12 @@
 // Codepen from the video: https://codepen.io/jakealbaugh/pen/jvQweW/
 
 // Init canvas
-const canvas = $("#spectrogram");
-const ctx = canvas.getContext("2d");
-canvas.width = 500;
-canvas.height = 400;
-canvas.style.width = `500px`;
-canvas.style.height = `400px`;
+const specCanvas = $("#spectrogram");
+const specCtx = specCanvas.getContext("2d");
+specCanvas.width = 500;
+specCanvas.height = 400;
+specCanvas.style.width = `500px`;
+specCanvas.style.height = `400px`;
 
 // Init audio context
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -106,6 +106,8 @@ function TestBuffer(seconds, volume) {
             //const freq = clampNumber( Math.sin(i/(40-(i/1000))), -1, 1);//(f));
             const freq = Math.sin(i/(f));
             //const freq = clampNumber(Math.sin(i/(20)), -1, 1);
+
+            //const freq = Math.sin(i/(30));
             const val = (freq) * volume;
             nowBuffering[i] = val;   
         }
@@ -128,7 +130,7 @@ function TestBuffer(seconds, volume) {
 
 function DrawColorWaveFromBuffer(buffer, vol) {
     // Init canvas size
-    canvas.width = buffer.length;//audioCtx.sampleRate * seconds;
+    specCanvas.width = buffer.length;//audioCtx.sampleRate * seconds;
 
     for (var i = 0; i < buffer.length; i++) {
         // Draw audio values
@@ -136,8 +138,8 @@ function DrawColorWaveFromBuffer(buffer, vol) {
         //const heatColor = sampleGradient(heatmapGradient, normalVal);
         const normalVal = (normalize(buffer[i], 1, -1)) * 100 * vol;
         const heatColor = sampleGradient(heatmapGradient, normalVal);
-        ctx.fillStyle = `rgb(${heatColor[0]}, ${heatColor[1]}, ${heatColor[2]})`;
-        ctx.fillRect(i, 0, 1, canvas.height);
+        specCtx.fillStyle = `rgb(${heatColor[0]}, ${heatColor[1]}, ${heatColor[2]})`;
+        specCtx.fillRect(i, 0, 1, specCanvas.height);
     }
 }
 
@@ -151,14 +153,14 @@ function DrawSpectrogramFromBuffer(buff, vol) {
 
     // Reset canvas width
     //chunk.length
-    canvas.height = 1024;
-    canvas.width = buff.length / (256);
-    // canvas.style.height = `${canvas.height}px`;
-    canvas.style.height = `${400}px`;
-    canvas.style.width = `${canvas.width}px`;
+    specCanvas.height = 1024;
+    specCanvas.width = buff.length / (256);
+    // specCanvas.style.height = `${specCanvas.height}px`;
+    specCanvas.style.height = `${400}px`;
+    specCanvas.style.width = `${specCanvas.width}px`;
 
-    ctx.fillStyle = 'hsl(280, 100%, 10%)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    specCtx.fillStyle = 'hsl(280, 100%, 10%)';
+    specCtx.fillRect(0, 0, specCanvas.width, specCanvas.height);
     canvasChunkNum = 0;
 
     // Create a new offline audio context (use this for non-realtime things)
@@ -197,12 +199,12 @@ let canvasChunkNum = 0;
 
 function drawFreqDataChunk(chunk) {
     // Init canvas size
-    //canvas.width += chunk.length;//audioCtx.sampleRate * seconds;
-    //ctx.fillStyle = 'hsl(280, 100%, 10%)';
-    //ctx.fillRect(x, 0, canvas.width, canvas.height);
+    //specCanvas.width += chunk.length;//audioCtx.sampleRate * seconds;
+    //specCtx.fillStyle = 'hsl(280, 100%, 10%)';
+    //specCtx.fillRect(x, 0, specCanvas.width, specCanvas.height);
     const lineSize = 1;
     canvasChunkNum += lineSize;
-    //canvas.width = canvasChunkNum;
+    //specCanvas.width = canvasChunkNum;
 
     for (var i = 0; i < chunk.length; i++) {
         // Set data
@@ -210,22 +212,22 @@ function drawFreqDataChunk(chunk) {
         const hue = Math.round((ratio * 120) + 280 % 360);
         const sat = `100%`;
         const lit = `${10 + (70 * ratio)}%`;
-        const h = (canvas.height / chunk.length);
-        const x = canvasChunkNum; //canvas.width - 1;
+        const h = (specCanvas.height / chunk.length);
+        const x = canvasChunkNum; //specCanvas.width - 1;
 
-        //ctx.fillStyle = 'hsl(280, 100%, 10%)';
-        //ctx.fillRect(0, 0, canvas.width, canvas.height);
+        //specCtx.fillStyle = 'hsl(280, 100%, 10%)';
+        //specCtx.fillRect(0, 0, specCanvas.width, specCanvas.height);
 
         // Set line style
-        ctx.lineWidth = lineSize;
-        //ctx.strokeStyle = `hsl(${hue}, ${sat}, ${lit})`;
+        specCtx.lineWidth = lineSize;
+        //specCtx.strokeStyle = `hsl(${hue}, ${sat}, ${lit})`;
         // Draw values
-        //ctx.beginPath();
-        //ctx.moveTo(x, canvas.height - (i * h));
-        //ctx.lineTo(x, canvas.height - ((i * h) + h));
-        //ctx.stroke();
-        //ctx.closePath();
-        ctx.fillStyle = `hsl(${hue}, ${sat}, ${lit})`;
-        ctx.fillRect(x, canvas.height - (i * h), h, h);
+        //specCtx.beginPath();
+        //specCtx.moveTo(x, specCanvas.height - (i * h));
+        //specCtx.lineTo(x, specCanvas.height - ((i * h) + h));
+        //specCtx.stroke();
+        //specCtx.closePath();
+        specCtx.fillStyle = `hsl(${hue}, ${sat}, ${lit})`;
+        specCtx.fillRect(x, specCanvas.height - (i * h), h, h);
     }
 }

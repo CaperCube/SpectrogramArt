@@ -5,12 +5,15 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "start": "node index.js",
+    "bif": "browserify main.js --s module > client/src/js/dist/bundle.js"
   },
   "author": "Eric Kalpin",
   "license": "ISC",
   "dependencies": {
+    "browserify": "^17.0.0",
     "dotenv": "^10.0.0",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "fft-js": "0.0.12"
   }
 }

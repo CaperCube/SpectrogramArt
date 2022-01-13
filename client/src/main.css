@@ -61,3 +61,15 @@ Common
     margin: var(--padding) 0;
     background-color: var(--inset-color);
 }
+
+/*============================================
+Canvas
+============================================*/
+
+#paintSaver_canvas {
+    display: none;
+}
+
+#drawingBoard {
+    background-color: aliceblue;
+}
