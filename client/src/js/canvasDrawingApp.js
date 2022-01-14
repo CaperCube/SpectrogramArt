@@ -1,4 +1,8 @@
 // We want to get the fft.inverse (or ifft?) of the dataBuffer, that should give us a correct drawing to audio buffer
+// Misc resources:
+// https://medium.datadriveninvestor.com/fourier-transform-for-image-processing-in-python-from-scratch-b96f68a6c30d
+// https://homepages.inf.ed.ac.uk/rbf/HIPR2/fourier.htm
+// https://climserv.ipsl.polytechnique.fr/documentation/idl_help/Transforming_Between_Domains_with_FFT.html
 
 let fft = module()
 console.log(fft)
@@ -264,11 +268,12 @@ function CanvasDrawingApp(props) {
             }
 
             // Convert data
-            let convertedData = dataArray
+            // let convertedData = dataArray
             // console.log(dataArray)
             
             // console.log(fft.util.fftMag(dataArray))
-            // let convertedData = fft.ifft(dataArray)
+            let convertedData = fft.fft(dataArray)
+            //console.log(convertedData)
 
             // Put data into audio buffer
             for (let x = 0; x < convertedData.length; x++)
@@ -284,7 +289,7 @@ function CanvasDrawingApp(props) {
                 // console.log(val)
 
                 // Make sure the data is in the (-1 to 1) range
-                nowBuffering[w] = (convertedData[x] * 2) - 1
+                nowBuffering[w] = ((convertedData[x][0] * 2) - 1)/2//(convertedData[x][0] * 2) - 1//convertedData[x][0]
                 w++
             }
         }
@@ -299,7 +304,7 @@ function CanvasDrawingApp(props) {
         // start the source playing
         source.start()
 
-        // console.log(myArrayBuffer.getChannelData(0), "done")
+        console.log("done")
     }
 
     ////////////////////////////////////////
