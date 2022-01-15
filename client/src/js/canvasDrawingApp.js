@@ -240,45 +240,65 @@ function CanvasDrawingApp(props) {
         this.brushColor = `#ffffff${hexNum}`
     }
 
-    // Move this function out of the drawing app
+    // ToDo: Move this function out of the drawing app
+    // Creates an audio buffer from the canvas data
     this.ConvertAndPlay = (ctx) => {
+        ////////////////////////////////////////
         // Create an audio buffer from the canvas data
-        //...
+        ////////////////////////////////////////
         
+        ////////////////////////////////////////
         // Create audio context
+        ////////////////////////////////////////
         var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         //audioCtx.fftSize = 1024; //512, 256, 2048, 4096; data resolution
 
+        ////////////////////////////////////////
         // Vars for img>sound converter
+        ////////////////////////////////////////
         const seconds = ctx.canvas.width //ctx.canvas.width * audioCtx.fftSize
         //const numSamples = ctx.canvas.width //(canvas.width * audioCtx.fftSize) * canvas.height
         //let sampleArray = [] // This array length will go up to {numSamples} in length
 
+        ////////////////////////////////////////
         // Create an empty monmo buffer at the sample rate of the AudioContext
+        ////////////////////////////////////////
         let myArrayBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * seconds, audioCtx.sampleRate);
         var nowBuffering = myArrayBuffer.getChannelData(0); // Get the 0th channel for now
         let dataArray = [] // This will store the raw value of each pixel in its column
 
+        ////////////////////////////////////////
         // Loop through all pixels and fill data
+        ////////////////////////////////////////
         let w = 0; // A counter for the buffer array
         for (let i = 0; i < ctx.canvas.width; i++) {
+            ////////////////////////////////////////
             // Reset data array
+            // Trying to isolate the audible ranges of the canvas, the comments below seem to leave gaps in the final wave-form
+            //
             // dataArray = new Array(ctx.canvas.height * 4).fill(0)
             // const freqOffset = (ctx.canvas.height * 3)
+            ////////////////////////////////////////
             const freqOffset = 0
 
+            ////////////////////////////////////////
             // Fill data array from image
+            ////////////////////////////////////////
             for (let j = 0; j < ctx.canvas.height; j++)
             {
                 let pixel = ctx.getImageData(i, j, 1, 1).data
                 dataArray[j + freqOffset] = (pixel[0] + pixel[1] + pixel[2]) / (255*3)
             }
 
+            ////////////////////////////////////////
             // Convert data
+            ////////////////////////////////////////
             let convertedData = fft.fft(dataArray)
             //console.log(convertedData)
 
+            ////////////////////////////////////////
             // Put data into audio buffer
+            ////////////////////////////////////////
             for (let x = 0; x < convertedData.length; x++)
             {
                 // Make sure the data is in the (-1 to 1) range
@@ -287,7 +307,10 @@ function CanvasDrawingApp(props) {
             }
         }
 
-        // Get an AudioBufferSourceNode.
+        ////////////////////////////////////////
+        // Create the clip and play
+        ////////////////////////////////////////
+        // Get an AudioBufferSourceNode
         // This is the AudioNode to use when we want to play an AudioBuffer
         var source = audioCtx.createBufferSource()
         // set the buffer in the AudioBufferSourceNode
@@ -297,7 +320,9 @@ function CanvasDrawingApp(props) {
         // start the source playing
         source.start()
 
+        ////////////////////////////////////////
         // Download the clip
+        ////////////////////////////////////////
         //...
 
         console.log("done")
