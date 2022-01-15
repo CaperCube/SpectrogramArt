@@ -3,7 +3,8 @@
 // https://medium.datadriveninvestor.com/fourier-transform-for-image-processing-in-python-from-scratch-b96f68a6c30d
 // https://homepages.inf.ed.ac.uk/rbf/HIPR2/fourier.htm
 // https://climserv.ipsl.polytechnique.fr/documentation/idl_help/Transforming_Between_Domains_with_FFT.html
-
+let sampleRate = 48000
+let volMod = 0.5
 let fft = module()
 console.log(fft)
 function CanvasDrawingApp(props) {
@@ -22,7 +23,7 @@ function CanvasDrawingApp(props) {
     // Brush vars
     this.brush // This should be an image eventually
     this.brushColor = "#ffffff"
-    this.brushSize = 5
+    this.brushSize = 1
 
     // Internal system vars
     let pointerDown = false
@@ -263,7 +264,9 @@ function CanvasDrawingApp(props) {
         ////////////////////////////////////////
         // Create an empty monmo buffer at the sample rate of the AudioContext
         ////////////////////////////////////////
-        let myArrayBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * seconds, audioCtx.sampleRate);
+        // let myArrayBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * seconds, audioCtx.sampleRate);
+        //let myArrayBuffer = audioCtx.createBuffer(1, sampleRate * seconds, sampleRate);
+        let myArrayBuffer = audioCtx.createBuffer(1, ctx.canvas.width * (ctx.canvas.height*2), sampleRate);
         var nowBuffering = myArrayBuffer.getChannelData(0); // Get the 0th channel for now
         let dataArray = [] // This will store the raw value of each pixel in its column
 
@@ -275,11 +278,14 @@ function CanvasDrawingApp(props) {
             ////////////////////////////////////////
             // Reset data array
             // Trying to isolate the audible ranges of the canvas, the comments below seem to leave gaps in the final wave-form
+            // Try having a blank canvas the size of this one to pull from as the top half of the data
             //
             // dataArray = new Array(ctx.canvas.height * 4).fill(0)
             // const freqOffset = (ctx.canvas.height * 3)
             ////////////////////////////////////////
-            const freqOffset = 0
+            dataArray = new Array(ctx.canvas.height * 2).fill(0)
+            const freqOffset = (ctx.canvas.height)
+            // const freqOffset = 0
 
             ////////////////////////////////////////
             // Fill data array from image
@@ -287,8 +293,15 @@ function CanvasDrawingApp(props) {
             for (let j = 0; j < ctx.canvas.height; j++)
             {
                 let pixel = ctx.getImageData(i, j, 1, 1).data
-                dataArray[j + freqOffset] = (pixel[0] + pixel[1] + pixel[2]) / (255*3)
+                dataArray[j + freqOffset] = ((pixel[0] + pixel[1] + pixel[2]) / (255*3)) * volMod
             }
+            // for (let j = 0; j < sampleRate/16; j++)
+            // {
+            //     const percentage = j/(sampleRate/16)
+            //     const pixelY = Math.floor(percentage * ctx.canvas.height)
+            //     let pixel = ctx.getImageData(i, pixelY, 1, 1).data
+            //     dataArray[j + freqOffset] = (pixel[0] + pixel[1] + pixel[2]) / (255*3)
+            // }
 
             ////////////////////////////////////////
             // Convert data
@@ -324,6 +337,10 @@ function CanvasDrawingApp(props) {
         // Download the clip
         ////////////////////////////////////////
         //...
+        // const b64Data = _arrayBufferToBase64(myArrayBuffer)
+        // const exportedSound = CreateAudioElement(b64Data)
+        // document.getElementById('song').appendChild(exportedSound)
+        SaveWAV(myArrayBuffer)
 
         console.log("done")
     }
@@ -336,7 +353,7 @@ function CanvasDrawingApp(props) {
 
 
 // Move this to main.js or something
-cApp = new CanvasDrawingApp({canvas: $("#draw_canvas"), width: 512, height: 512, background: "#000000"})
+cApp = new CanvasDrawingApp({canvas: $("#draw_canvas"), width: 512, height: 256, background: "#000000"})
 //256
 
 
@@ -382,3 +399,23 @@ private const double MAX_DATA = +50;
             OutputWav.SetData(Samples,NumSamples);
         }
 */
+
+function _arrayBufferToBase64( buffer ) {
+    var binary = '';
+    var bytes = new Uint8Array( buffer );
+    var len = bytes.byteLength;
+    for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode( bytes[ i ] );
+    }
+    return window.btoa( binary );
+}
+
+function CreateAudioElement(b64) {
+    let sound      = document.createElement('audio')
+    sound.id       = 'audio-player'
+    sound.controls = 'controls'
+    sound.src      = b64
+    sound.type     = 'audio/mpeg'
+    //document.getElementById('song').appendChild(sound);
+    return sound
+}

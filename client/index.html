@@ -15,16 +15,15 @@
     ////                     Scripts                    ////
     ////////////////////////////////////////////////////////
     -->
+    <!-- Util scripts -->
     <script defer src="src/js/dist/bundle.js"></script>
     <script defer src="src/js/commonUtils.js"></script>
-    <script defer src="src/js/spectrogram.js"></script>
     <!-- <script defer src="src/js/testAudioBuffer.js"></script> -->
     <!-- Drawing scripts -->
     <script defer src="src/js/canvasDrawingApp.js"></script>
-    <!-- <script defer src="src/js/drawing/color.js"></script>
-    <script defer src="src/js/drawing/brush.js"></script>
-    <script defer src="src/js/drawing/drawingObjects.js"></script>
-    <script defer src="src/js/drawing/drawingMain.js"></script> -->
+    <!-- Export Audio scripts -->
+    <script defer src="src/js/dist/WavAudioEncoder.js"></script>
+    <script defer src="src/js/dist/SaveBuffer.js"></script>
 </head>
 <body>
     <!--
@@ -44,9 +43,19 @@
         <div><span></span></div>
     </div>
     <canvas id="draw_canvas" width="200" height="200"></canvas><br>
+    <div id="ruler_time">
+        <div><span></span></div>
+        <div><span></span></div>
+        <div><span></span></div>
+        <div><span></span></div>
+        <div><span></span></div>
+    </div><br>
     Value: <input type="range" min="2" max="255" value="255" step="1" onchange="if(cApp) cApp.SetOpacity(this.value)"><br>
-    Size: <input type="range" min="1" max="50" value="5" onchange="if(cApp) cApp.brushSize = this.value"><br>
+    Size: <input type="range" min="1" max="50" value="1" onchange="if(cApp) cApp.brushSize = this.value"><br>
+    Volume: <input type="range" min="0" max="0.5" value="0.5" step="0.01" onchange="volMod = this.value"><br>
+    SampleRate: <input type="number" min="1" max="48000" value="48000" onchange="sampleRate = this.value"><br>
     <button onclick="if(cApp) cApp.Undo()">Undo</button>
     <button onclick="if(cApp) cApp.Redo()">Redo</button><br>
-    <button onclick="if(cApp) cApp.ConvertAndPlay(cApp.ctx)">Play</button>
+    <button onclick="if(cApp) cApp.ConvertAndPlay(cApp.ctx)">Play</button><br>
+    <!-- <button onclick="if(cApp) cApp.ConvertAndPlay(cApp.ctx)">Download</button> -->
 </body>

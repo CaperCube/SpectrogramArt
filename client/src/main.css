@@ -74,12 +74,16 @@ Canvas
     background-color: aliceblue;
 }
 
+/*============================================
+Rulers
+============================================*/
+
 #ruler_freq {
     display: inline-block;
     position: relative;
     
     width: 20px;
-    height: 512px;
+    height: 256px;
 
     float: left;
 }
@@ -100,6 +104,37 @@ Canvas
 
     width: 100%;
     height: 2px;
+
+    background-color: white;
+}
+
+#ruler_time {
+    display: inline-block;
+    position: relative;
+    
+    width: 512px;
+    height: 20px;
+
+    margin-left: 20px;
+}
+
+#ruler_time div {
+    display: inline-block;
+    position: relative;
+
+    float: left;
+
+    width: 20%;
+    height: 100%;
+}
+
+#ruler_time div span {
+    display: inline-block;
+    position: absolute;
+
+    right: 0px;
+    width: 2px;
+    height: 100%;
 
     background-color: white;
 }
