@@ -36,9 +36,16 @@
     <button onclick="TestBuffer(1, 1);">Test 1 Vol</button>
     <button onclick="TestBuffer(1, 0.2);">Test 0.2 Vol</button>
     <button onclick="TestBuffer(1, 0.05);">Test 0.05 Vol</button><br> -->
+    <div id="ruler_freq">
+        <div><span></span></div>
+        <div><span></span></div>
+        <div><span></span></div>
+        <div><span></span></div>
+        <div><span></span></div>
+    </div>
     <canvas id="draw_canvas" width="200" height="200"></canvas><br>
     Value: <input type="range" min="2" max="255" value="255" step="1" onchange="if(cApp) cApp.SetOpacity(this.value)"><br>
-    Size: <input type="range" min="1" max="10" value="5" onchange="if(cApp) cApp.brushSize = this.value"><br>
+    Size: <input type="range" min="1" max="50" value="5" onchange="if(cApp) cApp.brushSize = this.value"><br>
     <button onclick="if(cApp) cApp.Undo()">Undo</button>
     <button onclick="if(cApp) cApp.Redo()">Redo</button><br>
     <button onclick="if(cApp) cApp.ConvertAndPlay(cApp.ctx)">Play</button>

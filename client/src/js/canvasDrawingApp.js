@@ -83,11 +83,21 @@ function CanvasDrawingApp(props) {
     ////////////////////////////////////////
     // Draw point in path
     const DrawPoint = point => {
+        //Create radial gradient brush
+        // const px = point.x
+        // const py = point.y
+        // let brushGrad = this.ctx.createRadialGradient(px, py, 0, px, py, point.size/2);
+        // brushGrad.addColorStop(0, point.color);
+        // brushGrad.addColorStop(1, "#FFFFFF00");
+
         //Set drawing color
         this.ctx.fillStyle = point.color
 
-        // Draw shape
-        // this.ctx.fillRect(point.x, point.y, point.size, point.size)
+        // Draw Soft brush
+        // this.ctx.fillStyle = brushGrad;
+        // this.ctx.fillRect(point.x - (point.size/2), point.y - (point.size/2), point.size, point.size);
+
+        // Draw Circle
         this.ctx.beginPath()
         this.ctx.arc(point.x, point.y, point.size/2, 0, 2 * Math.PI)
         this.ctx.fill()
@@ -95,6 +105,7 @@ function CanvasDrawingApp(props) {
 
     // Draw all paths
     this.Render = () => {
+        // Draw BG
         this.ctx.fillStyle = this.bgColor
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
 
@@ -236,14 +247,14 @@ function CanvasDrawingApp(props) {
         
         // Create audio context
         var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        audioCtx.fftSize = 256; //512, 256, 2048, 4096; data resolution
+        //audioCtx.fftSize = 1024; //512, 256, 2048, 4096; data resolution
 
         // Vars for img>sound converter
-        const seconds = ctx.canvas.width / audioCtx.fftSize //ctx.canvas.width * audioCtx.fftSize
-        const numSamples = ctx.canvas.width * ctx.canvas.height //(canvas.width * audioCtx.fftSize) * canvas.height
-        let sampleArray = [] // This array length will go up to {numSamples} in length
+        const seconds = ctx.canvas.width //ctx.canvas.width * audioCtx.fftSize
+        //const numSamples = ctx.canvas.width //(canvas.width * audioCtx.fftSize) * canvas.height
+        //let sampleArray = [] // This array length will go up to {numSamples} in length
 
-        // Create an empty three-second stereo buffer at the sample rate of the AudioContext
+        // Create an empty monmo buffer at the sample rate of the AudioContext
         let myArrayBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * seconds, audioCtx.sampleRate);
         var nowBuffering = myArrayBuffer.getChannelData(0); // Get the 0th channel for now
         let dataArray = [] // This will store the raw value of each pixel in its column
@@ -251,43 +262,25 @@ function CanvasDrawingApp(props) {
         // Loop through all pixels and fill data
         let w = 0; // A counter for the buffer array
         for (let i = 0; i < ctx.canvas.width; i++) {
+            // Reset data array
+            // dataArray = new Array(ctx.canvas.height * 4).fill(0)
+            // const freqOffset = (ctx.canvas.height * 3)
+            const freqOffset = 0
 
             // Fill data array from image
             for (let j = 0; j < ctx.canvas.height; j++)
             {
-                // Color C = InputBitmap.GetPixel(i,j);
-                // data[j] = (C.R + C.G + C.B ) / 3;
-                // var data = context.getImageData(x, y, 1, 1).data;
-                // var rgb = [ data[0], data[1], data[2] ];
                 let pixel = ctx.getImageData(i, j, 1, 1).data
-                dataArray[j] = (pixel[0] + pixel[1] + pixel[2]) / (255*3)
-                // dataArray[j] = []
-                // dataArray[j][0] = (pixel[0] + pixel[1] + pixel[2]) / (255*3)
-                // dataArray[j][1] = (pixel[0] + pixel[1] + pixel[2]) / (255*3)
-                // normalize these values to be between 0 - 1
+                dataArray[j + freqOffset] = (pixel[0] + pixel[1] + pixel[2]) / (255*3)
             }
 
             // Convert data
-            // let convertedData = dataArray
-            // console.log(dataArray)
-            
-            // console.log(fft.util.fftMag(dataArray))
             let convertedData = fft.fft(dataArray)
             //console.log(convertedData)
 
             // Put data into audio buffer
             for (let x = 0; x < convertedData.length; x++)
             {
-                // Samples[w] = (byte)(MAX_DATA * data[x]);
-                // or maybe
-                // Samples[w] = (byte)( ((MAX_DATA * 2) * data[x]) - MAX_DATA );
-                // w++;
-
-                // const freq = Math.sin(w/(50))
-                // const val = (freq) * 0.5
-                // nowBuffering[w] = val
-                // console.log(val)
-
                 // Make sure the data is in the (-1 to 1) range
                 nowBuffering[w] = ((convertedData[x][0] * 2) - 1)/2//(convertedData[x][0] * 2) - 1//convertedData[x][0]
                 w++
@@ -304,6 +297,9 @@ function CanvasDrawingApp(props) {
         // start the source playing
         source.start()
 
+        // Download the clip
+        //...
+
         console.log("done")
     }
 
@@ -313,8 +309,9 @@ function CanvasDrawingApp(props) {
     Init(props)
 }
 
+
 // Move this to main.js or something
-cApp = new CanvasDrawingApp({canvas: $("#draw_canvas"), width: 400, height: 256, background: "#000000"})
+cApp = new CanvasDrawingApp({canvas: $("#draw_canvas"), width: 512, height: 512, background: "#000000"})
 //256
 
 

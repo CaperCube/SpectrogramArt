@@ -73,3 +73,33 @@ Canvas
 #drawingBoard {
     background-color: aliceblue;
 }
+
+#ruler_freq {
+    display: inline-block;
+    position: relative;
+    
+    width: 20px;
+    height: 512px;
+
+    float: left;
+}
+
+#ruler_freq div {
+    display: inline-block;
+    position: relative;
+    text-align: center;
+    vertical-align: middle;
+
+    width: 100%;
+    height: 20%;
+}
+
+#ruler_freq div span {
+    display: inline-block;
+    position: relative;
+
+    width: 100%;
+    height: 2px;
+
+    background-color: white;
+}
