@@ -112,16 +112,41 @@ function CanvasDrawingApp(props) {
 
         // Draw the stored paths
         for (let i = 0; i < this.paths.length; i++) {
-            for (let j = 0; j < this.paths[i].length; j++) {
-                DrawPoint(this.paths[i][j])
+            // for (let j = 0; j < this.paths[i].length; j++) {
+            this.ctx.beginPath();
+            this.ctx.lineCap = "round";
+            this.ctx.lineJoin = "round";
+            this.ctx.lineWidth = this.paths[i][0].size;
+            this.ctx.strokeStyle = this.paths[i][0].color;
+            this.ctx.moveTo(this.paths[i][0].x, this.paths[i][0].y);
+
+            for (let j = 1; j < this.paths[i].length; j++) {
+                // DrawPoint(this.paths[i][j])
+
+                // Connect points in path
+                this.ctx.lineTo(this.paths[i][j].x, this.paths[i][j].y);
             }
+
+            this.ctx.stroke();
         }
 
         // Draw current path
-        if (this.currentPath) {
-            for (let i = 0; i < this.currentPath.length; i++) {
-                DrawPoint(this.currentPath[i])
+        if (this.currentPath?.length > 0) {
+            // for (let i = 0; i < this.currentPath.length; i++) {
+            this.ctx.beginPath();
+            this.ctx.lineCap = "round";
+            this.ctx.lineJoin = "round";
+            this.ctx.lineWidth = this.currentPath[0].size;
+            this.ctx.strokeStyle = this.currentPath[0].color;
+            this.ctx.moveTo(this.currentPath[0].x, this.currentPath[0].y);
+
+            for (let i = 1; i < this.currentPath.length; i++) {
+                // DrawPoint(this.currentPath[i])
+
+                // Connect points in path
+                this.ctx.lineTo(this.currentPath[i].x, this.currentPath[i].y);
             }
+            this.ctx.stroke();
         }
     }
 
