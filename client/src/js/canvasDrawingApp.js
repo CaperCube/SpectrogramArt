@@ -1,16 +1,15 @@
-// We want to get the fft.inverse (or ifft?) of the dataBuffer, that should give us a correct drawing to audio buffer
-// Misc resources:
-// https://medium.datadriveninvestor.com/fourier-transform-for-image-processing-in-python-from-scratch-b96f68a6c30d
-// https://homepages.inf.ed.ac.uk/rbf/HIPR2/fourier.htm
-// https://climserv.ipsl.polytechnique.fr/documentation/idl_help/Transforming_Between_Domains_with_FFT.html
+// Audio vars
 let sampleRate = 48000
 let volMod = 0.5
 let fft = module()
-console.log(fft)
+
+// Drawing app
 function CanvasDrawingApp(props) {
+    // Canvas vars
     this.canvas
     this.ctx
     this.bgColor
+    this.shouldDrawBG = true
 
     // Path vars
     this.paths = []
@@ -42,11 +41,11 @@ function CanvasDrawingApp(props) {
         ////////////////////////////////////////
         // Initialize data members
         ////////////////////////////////////////
-        this.bgColor = background;
-        this.canvas = canvas;
-        this.canvas.width = width;
-        this.canvas.height = height;
-        this.ctx = this.canvas.getContext('2d');
+        this.bgColor = background
+        this.canvas = canvas
+        this.canvas.width = width
+        this.canvas.height = height
+        this.ctx = this.canvas.getContext('2d')
 
         ////////////////////////////////////////
         // Init the event listeners
@@ -61,19 +60,19 @@ function CanvasDrawingApp(props) {
         this.canvas.addEventListener("pointermove", function(event) {
             event.preventDefault()
             onPointerDrag(event)
-        });
+        })
         // Up
         this.canvas.addEventListener("touchend", function(event) { event.preventDefault() })
         this.canvas.addEventListener("pointerup", function(event) {
             event.preventDefault()
             onPointerUp(event)
-        });
+        })
         // Cancel
         this.canvas.addEventListener("touchcancel", function(event) { event.preventDefault() })
         this.canvas.addEventListener("pointercancel", function(event) {
             event.preventDefault()
             onPointerUp(event)
-        });
+        })
 
         // Do first frame render
         this.Render()
@@ -82,21 +81,11 @@ function CanvasDrawingApp(props) {
     ////////////////////////////////////////
     // Render functions
     ////////////////////////////////////////
-    // Draw point in path
-    const DrawPoint = point => {
-        //Create radial gradient brush
-        // const px = point.x
-        // const py = point.y
-        // let brushGrad = this.ctx.createRadialGradient(px, py, 0, px, py, point.size/2);
-        // brushGrad.addColorStop(0, point.color);
-        // brushGrad.addColorStop(1, "#FFFFFF00");
 
+    // Draw a point as a circle
+    const DrawRoundPoint = point => {
         //Set drawing color
         this.ctx.fillStyle = point.color
-
-        // Draw Soft brush
-        // this.ctx.fillStyle = brushGrad;
-        // this.ctx.fillRect(point.x - (point.size/2), point.y - (point.size/2), point.size, point.size);
 
         // Draw Circle
         this.ctx.beginPath()
@@ -104,87 +93,70 @@ function CanvasDrawingApp(props) {
         this.ctx.fill()
     }
 
-    // Draw all paths
+    // Draw a point as a soft circle
+    const DrawSoftPoint = point => {
+        //Create radial gradient brush
+        const px = point.x
+        const py = point.y
+        let brushGrad = this.ctx.createRadialGradient(px, py, 0, px, py, point.size/2)
+        brushGrad.addColorStop(0, point.color)
+        brushGrad.addColorStop(1, "#FFFFFF00")
+
+        // Draw Soft brush
+        this.ctx.fillStyle = brushGrad
+        this.ctx.fillRect(point.x - (point.size/2), point.y - (point.size/2), point.size, point.size)
+    }
+
+    // Draw a path as connected lines
+    const DrawPath = path => {
+        if (path?.length > 0) {
+            // Begin path
+            this.ctx.beginPath()
+            this.ctx.lineCap = "round"
+            this.ctx.lineJoin = "round"
+
+            // Starting point
+            this.ctx.lineWidth = path[0].size
+            this.ctx.strokeStyle = path[0].color
+            this.ctx.moveTo(path[0].x, path[0].y)
+
+            // Connect the rest of the points
+            for (let i = 1; i < path.length; i++) {
+                this.ctx.lineTo(path[i].x, path[i].y)
+            }
+
+            // Draw the path
+            this.ctx.stroke()
+        }
+    }
+
+    // Draw all paths and BG
     this.Render = () => {
         // Draw BG
-        this.ctx.fillStyle = this.bgColor
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
+        if (this.shouldDrawBG) {
+            this.ctx.fillStyle = this.bgColor
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
+        }
 
         // Draw the stored paths
         for (let i = 0; i < this.paths.length; i++) {
-            // for (let j = 0; j < this.paths[i].length; j++) {
-            this.ctx.beginPath();
-            this.ctx.lineCap = "round";
-            this.ctx.lineJoin = "round";
-            this.ctx.lineWidth = this.paths[i][0].size;
-            this.ctx.strokeStyle = this.paths[i][0].color;
-            this.ctx.moveTo(this.paths[i][0].x, this.paths[i][0].y);
-
-            for (let j = 1; j < this.paths[i].length; j++) {
-                // DrawPoint(this.paths[i][j])
-
-                // Connect points in path
-                this.ctx.lineTo(this.paths[i][j].x, this.paths[i][j].y);
-            }
-
-            this.ctx.stroke();
+            DrawPath(this.paths[i])
         }
 
         // Draw current path
-        if (this.currentPath?.length > 0) {
-            // for (let i = 0; i < this.currentPath.length; i++) {
-            this.ctx.beginPath();
-            this.ctx.lineCap = "round";
-            this.ctx.lineJoin = "round";
-            this.ctx.lineWidth = this.currentPath[0].size;
-            this.ctx.strokeStyle = this.currentPath[0].color;
-            this.ctx.moveTo(this.currentPath[0].x, this.currentPath[0].y);
-
-            for (let i = 1; i < this.currentPath.length; i++) {
-                // DrawPoint(this.currentPath[i])
-
-                // Connect points in path
-                this.ctx.lineTo(this.currentPath[i].x, this.currentPath[i].y);
-            }
-            this.ctx.stroke();
-        }
+        DrawPath(this.currentPath)
     }
 
     ////////////////////////////////////////
     // Event functions
     ////////////////////////////////////////
+    // Get the distance between two points (Unused)
     const GetDistance = (p1, p2) => {
         return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2))
     }
 
     // Create point for paths
     const CreatePoint = (point, lastPoint) => {
-        // Create points to fill gaps
-        if (false)//(lastPoint)
-        {
-            const distance = GetDistance(lastPoint, point)
-            const averageSize = this.brushSize//(lastPoint.brushSize + this.brushSize)/2
-            if (distance > averageSize/2) {
-                // Fill gap
-                const gapSteps = parseInt(distance / (averageSize/2), 10)
-                console.log(gapSteps)
-                for (let i = 0; i < gapSteps; i++) {
-                    const xDif = point.x - lastPoint.x
-                    const yDif = point.y - lastPoint.y
-
-                    // Create newest Point
-                    this.currentPath.push({
-                        // x: lastPoint.x + xDif - (xDif/(i+1)),
-                        // y: lastPoint.y + yDif - (yDif/(i+1)),
-                        x: lastPoint.x + (Math.sin(distance/i) * xDif),
-                        y: lastPoint.y + (Math.cos(distance/i) * yDif),
-                        color: this.brushColor,
-                        size: averageSize
-                    })
-                }
-            }
-        }
-
         // Create newest Point
         this.currentPath.push({
             x: point.x,
@@ -239,6 +211,7 @@ function CanvasDrawingApp(props) {
     ////////////////////////////////////////
     // Public functions
     ////////////////////////////////////////
+    // Move the newest path to the UndonePaths array
     this.Undo = () => {
         if (this.paths.length > 0 && this.paths.length < this.maxUndos) {
             this.UndonePaths.push(this.paths[this.paths.length-1])
@@ -247,12 +220,20 @@ function CanvasDrawingApp(props) {
         }
     }
 
+    // Move the newest UndonePaths array to the top of the path array
     this.Redo = () => {
         if (this.UndonePaths.length > 0) {
             this.paths.push(this.UndonePaths[this.UndonePaths.length-1])
             this.UndonePaths.splice(this.UndonePaths.length-1, 1)
             this.Render()
         }
+    }
+
+    // Clear all path arrays and re-render
+    this.Clear = () => {
+        this.paths = []
+        this.UndonePaths = []
+        this.Render()
     }
 
     // Expected input: 0 - 255
@@ -266,9 +247,17 @@ function CanvasDrawingApp(props) {
         this.brushColor = `#ffffff${hexNum}`
     }
 
-    // ToDo: Move this function out of the drawing app
+    // ToDo: Move this function out of the drawing app and clean up
     // Creates an audio buffer from the canvas data
     this.ConvertAndPlay = (ctx) => {
+        // We want to get the fft.inverse (or ifft?) of the dataBuffer, that should give us a correct drawing to audio buffer
+
+        // Misc resources:
+        // C# implementation from: https://www.codeproject.com/Articles/31935/Draw-into-sound
+        // https://medium.datadriveninvestor.com/fourier-transform-for-image-processing-in-python-from-scratch-b96f68a6c30d
+        // https://homepages.inf.ed.ac.uk/rbf/HIPR2/fourier.htm
+        // https://climserv.ipsl.polytechnique.fr/documentation/idl_help/Transforming_Between_Domains_with_FFT.html
+
         ////////////////////////////////////////
         // Create an audio buffer from the canvas data
         ////////////////////////////////////////
@@ -276,8 +265,8 @@ function CanvasDrawingApp(props) {
         ////////////////////////////////////////
         // Create audio context
         ////////////////////////////////////////
-        var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        //audioCtx.fftSize = 1024; //512, 256, 2048, 4096; data resolution
+        var audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+        //audioCtx.fftSize = 1024 //512, 256, 2048, 4096 data resolution
 
         ////////////////////////////////////////
         // Vars for img>sound converter
@@ -289,16 +278,16 @@ function CanvasDrawingApp(props) {
         ////////////////////////////////////////
         // Create an empty monmo buffer at the sample rate of the AudioContext
         ////////////////////////////////////////
-        // let myArrayBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * seconds, audioCtx.sampleRate);
-        //let myArrayBuffer = audioCtx.createBuffer(1, sampleRate * seconds, sampleRate);
-        let myArrayBuffer = audioCtx.createBuffer(1, ctx.canvas.width * (ctx.canvas.height*2), sampleRate);
-        var nowBuffering = myArrayBuffer.getChannelData(0); // Get the 0th channel for now
+        // let myArrayBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * seconds, audioCtx.sampleRate)
+        //let myArrayBuffer = audioCtx.createBuffer(1, sampleRate * seconds, sampleRate)
+        let myArrayBuffer = audioCtx.createBuffer(1, ctx.canvas.width * (ctx.canvas.height*2), sampleRate)
+        var nowBuffering = myArrayBuffer.getChannelData(0) // Get the 0th channel for now
         let dataArray = [] // This will store the raw value of each pixel in its column
 
         ////////////////////////////////////////
         // Loop through all pixels and fill data
         ////////////////////////////////////////
-        let w = 0; // A counter for the buffer array
+        let w = 0 // A counter for the buffer array
         for (let i = 0; i < ctx.canvas.width; i++) {
             ////////////////////////////////////////
             // Reset data array
@@ -376,71 +365,5 @@ function CanvasDrawingApp(props) {
     Init(props)
 }
 
-
-// Move this to main.js or something
+// Create the canvas app
 cApp = new CanvasDrawingApp({canvas: $("#draw_canvas"), width: 512, height: 256, background: "#000000"})
-//256
-
-
-/*
-C# implementation from: https://www.codeproject.com/Articles/31935/Draw-into-sound
-
-private const double MAX_DATA = +50;
-        private const double MIN_DATA = -50;
-
-        private const String NoInputBitmap = "No input bitmap";
-
-        public Bitmap InputBitmap { get; set; }
-        public WaveFile OutputWav { get; set; }
-
-        public void Start()
-        {
-            int NumSamples = InputBitmap.Width * InputBitmap.Height;
-            byte[] Samples = new byte[NumSamples];
-            OutputWav = new WaveFile(1, 16, 44000);
-            if (InputBitmap == null) throw new Exception(NoInputBitmap);
-            double[] data = new double[InputBitmap.Height];
-
-            int w = 0;
-            for (int i = 0; i < InputBitmap.Width; i++) 
-            {
-                for (int j = 0; j < InputBitmap.Height; j++)
-                {
-                    Color C = InputBitmap.GetPixel(i,j);
-                    data[j] = (C.R + C.G + C.B ) / 3;
-                }
-
-                FFT_Img2Wav.inverse(data);
-                                
-                for (int x = 0; x < data.Length; x++)
-                {
-                    Samples[w] = (byte)(MAX_DATA * data[x]);
-                    // or maybe
-                    // Samples[w] = (byte)( ((MAX_DATA * 2) * data[x]) - MAX_DATA );
-                    w++;
-                }
-            }
-
-            OutputWav.SetData(Samples,NumSamples);
-        }
-*/
-
-function _arrayBufferToBase64( buffer ) {
-    var binary = '';
-    var bytes = new Uint8Array( buffer );
-    var len = bytes.byteLength;
-    for (var i = 0; i < len; i++) {
-        binary += String.fromCharCode( bytes[ i ] );
-    }
-    return window.btoa( binary );
-}
-
-function CreateAudioElement(b64) {
-    let sound      = document.createElement('audio')
-    sound.id       = 'audio-player'
-    sound.controls = 'controls'
-    sound.src      = b64
-    sound.type     = 'audio/mpeg'
-    //document.getElementById('song').appendChild(sound);
-    return sound
-}
